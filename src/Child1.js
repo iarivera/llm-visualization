@@ -5,16 +5,16 @@ class Child1 extends Component {
     componentDidMount() {
         console.log(this.props.csv_data)
         var data = [
-            { month: new Date(2024, 1, 1), "GPT-4": 120, "Gemini": 20, "PaLM-2": 90, "Claude": 50, "LLaMA-3.1": 60 },
-            { month: new Date(2024, 2, 1), "GPT-4": 130, "Gemini": 75, "PaLM-2": 35, "Claude": 60, "LLaMA-3.1": 70 },
-            { month: new Date(2024, 3, 1), "GPT-4": 50, "Gemini": 50, "PaLM-2": 95, "Claude": 65, "LLaMA-3.1": 80 },
-            { month: new Date(2024, 4, 1), "GPT-4": 100, "Gemini": 65, "PaLM-2": 80, "Claude": 70, "LLaMA-3.1": 90 },
-            { month: new Date(2024, 5, 1), "GPT-4": 60, "Gemini": 50, "PaLM-2": 150, "Claude": 75, "LLaMA-3.1": 100 },
-            { month: new Date(2024, 6, 1), "GPT-4": 100, "Gemini": 55, "PaLM-2": 60, "Claude": 80, "LLaMA-3.1": 110 },
-            { month: new Date(2024, 7, 1), "GPT-4": 180, "Gemini": 50, "PaLM-2": 130, "Claude": 85, "LLaMA-3.1": 120 },
-            { month: new Date(2024, 8, 1), "GPT-4": 190, "Gemini": 45, "PaLM-2": 100, "Claude": 90, "LLaMA-3.1": 130 },
-            { month: new Date(2024, 9, 1), "GPT-4": 200, "Gemini": 40, "PaLM-2": 50, "Claude": 95, "LLaMA-3.1": 140 },
-            { month: new Date(2024, 10, 1), "GPT-4": 110, "Gemini": 135, "PaLM-2": 80, "Claude": 100, "LLaMA-3.1": 150 },
+            { month: new Date(2024, 0, 1), "GPT-4": 120, "Gemini": 20, "PaLM-2": 90, "Claude": 50, "LLaMA-3.1": 60 },
+            { month: new Date(2024, 1, 1), "GPT-4": 130, "Gemini": 75, "PaLM-2": 35, "Claude": 60, "LLaMA-3.1": 70 },
+            { month: new Date(2024, 2, 1), "GPT-4": 50, "Gemini": 50, "PaLM-2": 95, "Claude": 65, "LLaMA-3.1": 80 },
+            { month: new Date(2024, 3, 1), "GPT-4": 100, "Gemini": 65, "PaLM-2": 80, "Claude": 70, "LLaMA-3.1": 90 },
+            { month: new Date(2024, 4, 1), "GPT-4": 60, "Gemini": 50, "PaLM-2": 150, "Claude": 75, "LLaMA-3.1": 100 },
+            { month: new Date(2024, 5, 1), "GPT-4": 100, "Gemini": 55, "PaLM-2": 60, "Claude": 80, "LLaMA-3.1": 110 },
+            { month: new Date(2024, 6, 1), "GPT-4": 180, "Gemini": 50, "PaLM-2": 130, "Claude": 85, "LLaMA-3.1": 120 },
+            { month: new Date(2024, 7, 1), "GPT-4": 190, "Gemini": 45, "PaLM-2": 100, "Claude": 90, "LLaMA-3.1": 130 },
+            { month: new Date(2024, 8, 1), "GPT-4": 200, "Gemini": 40, "PaLM-2": 50, "Claude": 95, "LLaMA-3.1": 140 },
+            { month: new Date(2024, 9, 1), "GPT-4": 110, "Gemini": 135, "PaLM-2": 80, "Claude": 100, "LLaMA-3.1": 150 },
           ];
         this.renderChart(data);
     }
@@ -54,24 +54,80 @@ class Child1 extends Component {
             .style("border-width", "1px")
             .style("border-radius", "5px")
             .style("padding", "5px")
+            .style("pointer-events", "none")
 
         var mouseover = function(d) {
-            tooltip
-                .html("test")
-                .style("opacity", 1)
+            tooltip.style("opacity", 1)
         }
+        var mousemove = function(event, d) {
+            const layerData = d.map(point => ({
+                month: point.data.month,
+                value: point[1] - point[0]
+            }));
+            // Update tooltip content and position
+            tooltip
+                .html("")
+                .style("left", (event.pageX + 10) + "px")
+                .style("top", (event.pageY + 10) + "px");
+        
+            // Append an SVG for the bar chart
+            const tooltipWidth = 200;
+            const tooltipHeight = 100;
+            const margin = { top: 10, right: 10, bottom: 20, left: 30 };
+        
+            const svg = tooltip
+                .append("svg")
+                .attr("width", tooltipWidth)
+                .attr("height", tooltipHeight);
+        
+            const xScale = d3.scaleBand()
+                .domain(keys)
+                .range([margin.left, tooltipWidth - margin.right])
+                .padding(0.1);
+        
+                const yScale = d3.scaleLinear()
+                .domain([0, d3.max(layerData, d => d.value)])
+                .range([tooltipHeight - margin.bottom, margin.top]);
+        
+            svg.selectAll("rect")
+                .data(layerData)
+                .join("rect")
+                .attr("x", d => xScale(d.month.toLocaleDateString("en-US", { month: "short" })))
+                .attr("y", d => yScale(d.value))
+                .attr("width", xScale.bandwidth())
+                .attr("height", d => tooltipHeight - margin.bottom - yScale(d.value))
+                .attr("fill", "steelblue");
+        
+            // X-axis
+            svg.append("g")
+                .attr("transform", `translate(0, ${tooltipHeight - margin.bottom})`)
+                .call(d3.axisBottom(xScale))
+                .selectAll("text")
+                .attr("font-size", "10px");
+        
+            svg.append("g")
+                .attr("transform", `translate(${margin.left}, 0)`)
+                .call(d3.axisLeft(yScale).ticks(4))
+                .selectAll("text")
+                .attr("font-size", "10px");  
+        };
         var mouseleave = function(d) {
-            tooltip
-                .style("opacity", 0)
-        }
+            tooltip.style("opacity", 0)
+        };
 
         // chart
         svg.selectAll('path').data(stackedSeries).join('path').attr('d', d=>areaGenerator(d))
             .attr('fill', (d, i) => colors[i]).attr('transform', `translate(0, -200)`)
             .on("mouseover", mouseover)
+            .on("mousemove", mousemove)
             .on("mouseleave", mouseleave);
 
-        svg.selectAll('.x_axis').data([null]).join('g').attr('class', 'x_axis').attr('transform', `translate(0, 600)`).call(d3.axisBottom(xScale));
+        const monthFormat = d3.timeFormat("%b");
+
+        svg.selectAll('.x_axis')
+            .data([null]).join('g').attr('class', 'x_axis')
+            .attr('transform', `translate(0, 600)`)
+            .call(d3.axisBottom(xScale).tickFormat(monthFormat));
         //reverse the keys for, the legend
         const legendKeys = keys.reverse();
         const legendColors = colors.reverse();
