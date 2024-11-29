@@ -43,10 +43,38 @@ class Child1 extends Component {
         var areaGenerator = d3.area().x(d => xScale(d.data.month)).y0(d => yScale(d[0])).y1(d => yScale(d[1])).curve(d3.curveCardinal);
 
         const svg = d3.select('.container')
-        
-        svg.selectAll('path').data(stackedSeries).join('path').attr('d', d=>areaGenerator(d)).attr('fill', (d, i) => colors[i]).attr('transform', `translate(0, -200)`);
+
+        // tooltip
+        var tooltip = d3.select(".container")
+            .append("div")
+            .style("opacity", 0)
+            .attr("class", "tooltip")
+            .style("background-color", "white")
+            .style("border", "solid")
+            .style("border-width", "1px")
+            .style("border-radius", "5px")
+            .style("padding", "5px")
+
+        var mouseover = function(d) {
+            tooltip
+                .html("test")
+                .style("opacity", 1)
+        }
+        var mouseleave = function(d) {
+            tooltip
+                .style("opacity", 0)
+        }
+
+        // chart
+        svg.selectAll('path').data(stackedSeries).join('path').attr('d', d=>areaGenerator(d))
+            .attr('fill', (d, i) => colors[i]).attr('transform', `translate(0, -200)`)
+            .on("mouseover", mouseover)
+            .on("mouseleave", mouseleave);
 
         svg.selectAll('.x_axis').data([null]).join('g').attr('class', 'x_axis').attr('transform', `translate(0, 600)`).call(d3.axisBottom(xScale));
+        //reverse the keys for, the legend
+        const legendKeys = keys.reverse();
+        const legendColors = colors.reverse();
         
         const legend = svg.selectAll(".legend")
             .data(keys)
