@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import './App.css';
 import FileUpload from "./FileUpload";
+import Child1 from "./Child1";
 
 class App extends Component {
   constructor(props) {
@@ -16,10 +17,13 @@ class App extends Component {
   }
 
   render() {
+    /*Component for steamgraph */
     return (
       <div>
         <FileUpload set_data={this.set_data}></FileUpload>
-        <div className="parent"></div>
+        <div className="parent">
+          <Child1></Child1>
+        </div>
       </div>
     );
   }
