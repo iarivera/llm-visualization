@@ -17,10 +17,18 @@ class Child1 extends Component {
             { month: new Date(2024, 8, 1), "GPT-4": 200, "Gemini": 40, "PaLM-2": 50, "Claude": 95, "LLaMA-3.1": 140 },
             { month: new Date(2024, 9, 1), "GPT-4": 110, "Gemini": 135, "PaLM-2": 80, "Claude": 100, "LLaMA-3.1": 150 },
           ];
-        this.renderChart(data);
+        this.renderChart(this.props.data);
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.data !== this.props.data) {
+            d3.select('.container').selectAll('*').remove();
+            this.renderChart(this.props.data);
+        }
     }
 
     renderChart = (data) => {
+        
         const keys = ['GPT-4', 'Gemini', 'PaLM-2', 'Claude', 'LLaMA-3.1'];
         const maxSum = d3.sum(
             keys.map(key => d3.max(data, d => d[key]))
