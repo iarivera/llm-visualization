@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/llm-visualization/static/css/main.18e89174.css",
+    "main.js": "/llm-visualization/static/js/main.0ba71254.js",
+    "index.html": "/llm-visualization/index.html",
+    "main.18e89174.css.map": "/llm-visualization/static/css/main.18e89174.css.map",
+    "main.0ba71254.js.map": "/llm-visualization/static/js/main.0ba71254.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.18e89174.css",
+    "static/js/main.0ba71254.js"
+  ]
+}
