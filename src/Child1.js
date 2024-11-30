@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import './Child1.css';
 import * as d3 from "d3";
 
 class Child1 extends Component {
@@ -45,8 +46,8 @@ class Child1 extends Component {
         const svg = d3.select('.container')
 
         // tooltip
-        var tooltip = d3.select(".container")
-            .append("div")
+        var tooltip = d3.select("body")
+            .append("g")
             .style("opacity", 0)
             .attr("class", "tooltip")
             .style("background-color", "white")
@@ -59,65 +60,71 @@ class Child1 extends Component {
         var mouseover = function(d) {
             tooltip.style("opacity", 1)
         }
-        var mousemove = function(event, d) {
-            const layerData = d.map(point => ({
-                month: point.data.month,
-                value: point[1] - point[0]
+        var mousemove = function (event, d) {
+            const model = d.key;
+            const modelData = data.map(d => ({
+                month: d.month,
+                value: d[model]
             }));
-            // Update tooltip content and position
+            const modelColor = colors[keys.indexOf(model)];
+
             tooltip
                 .html("")
                 .style("left", (event.pageX + 10) + "px")
                 .style("top", (event.pageY + 10) + "px");
-        
-            // Append an SVG for the bar chart
-            const tooltipWidth = 200;
+
+            const tooltipWidth = 250;
             const tooltipHeight = 100;
-            const margin = { top: 10, right: 10, bottom: 20, left: 30 };
-        
-            const svg = tooltip
+            const margin = { top: 10, right: 5, bottom: 20, left: 30 };
+
+            const svgTooltip = tooltip
                 .append("svg")
                 .attr("width", tooltipWidth)
                 .attr("height", tooltipHeight);
-        
-            const xScale = d3.scaleBand()
-                .domain(keys)
-                .range([margin.left, tooltipWidth - margin.right])
+
+            const xScaleTooltip = d3.scaleBand()
+                .domain(modelData.map(d => d.month.toLocaleDateString("en-US", { month: "short" })))
+                .range([margin.left, tooltipWidth])
                 .padding(0.1);
-        
-                const yScale = d3.scaleLinear()
-                .domain([0, d3.max(layerData, d => d.value)])
+
+            const yScaleTooltip = d3.scaleLinear()
+                .domain([0, d3.max(modelData, d => d.value)])
                 .range([tooltipHeight - margin.bottom, margin.top]);
-        
-            svg.selectAll("rect")
-                .data(layerData)
+
+            svgTooltip.selectAll("rect")
+                .data(modelData)
                 .join("rect")
-                .attr("x", d => xScale(d.month.toLocaleDateString("en-US", { month: "short" })))
-                .attr("y", d => yScale(d.value))
-                .attr("width", xScale.bandwidth())
-                .attr("height", d => tooltipHeight - margin.bottom - yScale(d.value))
-                .attr("fill", "steelblue");
-        
-            // X-axis
-            svg.append("g")
+                .attr("x", d => xScaleTooltip(d.month.toLocaleDateString("en-US", { month: "short" })))
+                .attr("y", d => yScaleTooltip(d.value))
+                .attr("width", xScaleTooltip.bandwidth())
+                .attr("height", d => tooltipHeight - margin.bottom - yScaleTooltip(d.value))
+                .attr("transfrom", `translate( ${event.pageX + 10}, ${event.pageY + 10})`)
+                .attr("fill", modelColor);
+
+            svgTooltip.append("g")
                 .attr("transform", `translate(0, ${tooltipHeight - margin.bottom})`)
-                .call(d3.axisBottom(xScale))
+                .call(d3.axisBottom(xScaleTooltip))
                 .selectAll("text")
                 .attr("font-size", "10px");
-        
-            svg.append("g")
+
+            svgTooltip.append("g")
                 .attr("transform", `translate(${margin.left}, 0)`)
-                .call(d3.axisLeft(yScale).ticks(4))
+                .call(d3.axisLeft(yScaleTooltip).ticks(4))
                 .selectAll("text")
-                .attr("font-size", "10px");  
+                .attr("font-size", "10px");
         };
-        var mouseleave = function(d) {
-            tooltip.style("opacity", 0)
+
+        var mouseleave = function () {
+            tooltip.style("opacity", 0);
         };
 
         // chart
-        svg.selectAll('path').data(stackedSeries).join('path').attr('d', d=>areaGenerator(d))
-            .attr('fill', (d, i) => colors[i]).attr('transform', `translate(0, -200)`)
+        svg.selectAll('path')
+            .data(stackedSeries)
+            .join('path')
+            .attr('d', d=>areaGenerator(d))
+            .attr('fill', (d, i) => colors[i])
+            .attr('transform', `translate(0, -200)`)
             .on("mouseover", mouseover)
             .on("mousemove", mousemove)
             .on("mouseleave", mouseleave);
@@ -128,6 +135,7 @@ class Child1 extends Component {
             .data([null]).join('g').attr('class', 'x_axis')
             .attr('transform', `translate(0, 600)`)
             .call(d3.axisBottom(xScale).tickFormat(monthFormat));
+        
         //reverse the keys for, the legend
         const legendKeys = keys.reverse();
         const legendColors = colors.reverse();
